@@ -3,10 +3,10 @@ In this repository lives a collection of repositories that showcases some of dat
 
 ## Data Aquisiton
 [Pipe Lines](https://github.com/fjcrodriguez/projects/tree/master/data_pipelines)
+
 ## Machine Learning
-
+[ML Projects](https://github.com/fjcrodriguez/projects/tree/master/machine_learning)
 ## Distributed Computing
-
+[Spark](https://github.com/fjcrodriguez/projects/tree/master/spark)
 ## Time Series Analysis
-
-## Auctions
+[TS Projects](https://github.com/fjcrodriguez/projects/tree/master/time_series)
