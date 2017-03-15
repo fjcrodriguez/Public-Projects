@@ -1,11 +1,11 @@
-import csv
+from csv_utils import *
 
 def build_html(headers, data):
     """
     method for building an html file given headers and data
 
     :param headers: list of strings
-    :param data: list of lists 
+    :param data: list of lists
     """
     # - top level tags
     # start the html string by adding the beginning
@@ -31,6 +31,6 @@ def build_html(headers, data):
     html += '\n</table>\n</body>\n</html>'
 
 if __main__=="__name__":
-    headers, data = csv.read_csv(csv.getdata())
+    headers, data = read_csv(getdata())
     html_data = build_html(headers, data)
     print html_data

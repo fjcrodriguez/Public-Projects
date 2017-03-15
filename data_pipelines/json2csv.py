@@ -1,4 +1,4 @@
-import csv_utils
+from csv_utils import *
 import json
 
 def parse_json(json_data):
@@ -14,6 +14,6 @@ def parse_json(json_data):
     return headers, data
 
 if __name__=="__main__":
-    json_data = json.loads(csv.getdata())
+    json_data = json.loads(getdata())
     headers, data = parse_json(json_data)
-    csv.create_csv(headers, data)
+    create_csv(headers, data)

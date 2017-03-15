@@ -1,4 +1,4 @@
-import csv
+from csv_utils import *
 
 def build_json(headers, data):
     """
@@ -32,6 +32,6 @@ def build_json(headers, data):
     return json
 
 if __name__=="__main__":
-    headers, data = csv.readcsv(csv.getdata())
+    headers, data = read_csv(getdata())
     json = build_json(headers, data)
     print json

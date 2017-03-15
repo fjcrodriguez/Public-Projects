@@ -1,4 +1,4 @@
-import csv
+from csv_utils import *
 import re
 
 
@@ -28,7 +28,6 @@ def build_xml(headers, data):
     return xml
 
 if __name__=="__main__":
-    text = csv.getdata()
-    headers, data = csv.readcsv(text)
+    headers, data = csv.read_csv(getdata())
     xml = build_xml(headers, data)
     print xml

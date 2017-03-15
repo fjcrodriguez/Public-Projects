@@ -1,4 +1,4 @@
-import csv
+from csv_utils import *
 import untangle
 import re
 
@@ -21,6 +21,6 @@ def parse_xml(xml):
 
 
 if __name__=="__main__":
-    xml = untangle.parse(csv.getdata())
+    xml = untangle.parse(getdata())
     headers, data = parse_xml(xml)
-    csv.create_csv(headers, data)
+    create_csv(headers, data)
