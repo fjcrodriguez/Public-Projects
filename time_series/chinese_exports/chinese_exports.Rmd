@@ -1,0 +1,248 @@
+---
+title: "Homework 3"
+author: "Francisco Calderon"
+date: "December 3rd, 2016"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+### Intro
+
+In this study, exports to China are modeled and forecasted using four time-series modeling approaches. These modeling approaches include HoltWinters, SARIMA, SARIMAX and VAR. For each modeling approach, we find the best performing model and report the root mean suqared error. Included with the exports to China are imports from China which will also be used to model and forecast exports in the SARIMAX and VAR approaches. In Figure 1 we show the time-series plots of Chinese exports. As one can see, the time series exhibits trend, seasonality, as well as changing variance throughout time. As we will see later on, the SARIMAX approach models and forecasts the data better than the other approaches. 
+
+```{r, include=FALSE}
+setwd("C:/Users/barca/Google Drive//Analytics/msan604/AS3")
+library(forecast, quietly = T)
+library(tseries, quietly = T)
+library(vars)
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+```{r, include = F}
+rmse <- function(true, test, log=FALSE){
+  if(mode(test)=="list"){
+    ts <- test$pred
+  }else if (mode(test)=='numeric'){
+    ts <- test
+  }
+  
+  if (log){
+    ts <- exp(ts)
+  }
+  mse <- sqrt(mean( (true - ts )^2 ) )
+  
+  return(mse)
+}
+```
+
+```{r, include=FALSE}
+china <- read.csv("china.csv")
+china <- china[,-1]
+exports <- ts(china$ch.exp)
+exports <- ts(exports, frequency = 12, start = 1984)
+exports_train <- window(exports, 1984, c(1984, 19*12))
+exports_test <- window(exports, 2003, c(2003, 6*12)) 
+imports <- ts(china$ch.imp)
+imports <- ts(imports, frequency = 12, start = 1984)
+imports_train <- window(imports, 1984, c(1984, 19*12))
+imports_test <- window(imports, 2003, c(2003, 6*12))
+```
+
+```{r, echo=FALSE,fig.height=3.75, fig.width=5.25}
+plot(exports, ylab = 'Exports (100 Million US Dollars)', main='Figure 1: Chinese Exports from Jan 1984 to Dec 2008')
+```
+
+
+
+
+```{r, include=FALSE}
+ex.es <- HoltWinters(x = exports_train,alpha=.14,beta=.87,gamma=.47, seasonal = "mult")
+pred.f <- predict(ex.es, n.ahead = 72)
+rmse.es <- rmse(exports_test, pred.f)
+knitr::opts_chunk$set(fig.height=4, fig.width=6)
+```
+
+\newpage
+
+### Holt-Winters
+
+Since the plot of the series shows that trend and seasonality exist, we use the Triple Exponential Smooting method. The Holt-winters implementation in R automatically chooses the appropriate $\alpha$, $\beta$, and $\gamma$ to minimize the sum of square error. However, iterating through all possbile combinations of parameters with values from 0.01 to 0.99, we find the optimal hyper parameters are:
+$\alpha = `r round(ex.es$alpha, 3)`$, $\beta = `r round(ex.es$beta, 3)`$, $\gamma = `r round(ex.es$gamma, 3)`$. A plot of chinese exports forecasted is shown in Figure 2 which shows a 95% confidence interval for those predictons. The root mean squared error derived from this model is `r round(rmse.es, 2)`, which means that on average the model is off by `r round(rmse.es, 2)` hundred-million dollars. The residuals do show a mean of zero but the assumption of constant variance is not met. Residuals also show high correlatedness throughout many lags. This can be seen in Holt-Winters Diagnostic Plots in the appendix.  
+
+```{r, echo=FALSE}
+pred <- forecast(ex.es, h = 72)
+t.new <- seq(2003,2008,length=73)[1:72]
+plot(exports_train,xlim=c(1984,2008),ylim=c(0,1500), ylab='Exports (100 Million US Dollars)', main='Figure 2: Holt-Winters Predictions of Chinese Exports') #plotting the data
+abline(v=2003,col='blue',lty=2)
+lines(pred$mean~t.new,type='l',col='red')
+lines(pred$lower[,2]~t.new,col='blue') 
+lines(pred$upper[,2]~t.new,col='blue')
+legend(1985,1450, c("95% CI",  "Prediction"), lty = c(1,1),lwd = c(2.5,2.5), col = c('blue','red'))
+```
+
+```{r, echo=FALSE}
+predictions <- data.frame(Prediciton=pred$mean, Lower=pred$lower[,2], Upper=pred$upper[,2])
+knitr::kable(predictions[1:10,])
+```
+
+
+\newpage
+
+### SARIMA 
+```{r, include=FALSE}
+ndiffs(exports)
+```
+
+```{r, include=FALSE}
+exports.log <- log(exports_train)
+#par(mfrow=c(2,1))
+acf(exports.log, lag.max = 36)
+pacf(exports.log, lag.max = 36)
+```
+
+   
+```{r, include=FALSE}
+m12 <- arima(exports.log, order = c(2,1,2), seasonal = list(order = c(2,1,2), period = 12), method = 'CSS') 
+rmse.sarima <- rmse(exports_test, predict(m12, n.ahead = 72), log=T)
+```
+The original time series plot showed increasing varation with time, so after taking the log transformation, ACF and PACF plots showed that the order of the SARIMA model could have the following hyper paramters: 
+$p=1,2,3$
+$q = 1,2,3$
+$s = 12$
+$d = 1$
+$D = 1$
+$Q = 1,2,3$
+$P = 1,2,3$
+The model SARIMA(2,1,2)x(2,1,2) with $s=12$ performed the best with regards to RMSE. A plot of the residual time series showed that the residuals are homoskedastic and have mean of zero. The residuals did not meet the assumption of normality, but this is not a problem due to SARIMA being fit using the least squares method. Lastly, p-values for the Ljung-Box statistic show there is no presence of autocorrelation at any lags. These plots are displayed in the SARIMA Diagnostic plots in the appendix. This model derived a root mean squared error of `r round(rmse.sarima,2)`
+
+```{r, echo=FALSE}
+pred <- forecast(m12, h = 72)
+t.new <- seq(2003,2008,length=73)[1:72]
+plot(exports_train,xlim=c(1984,2008),ylim=c(0,1500), ylab='Exports (100 Million US Dollars)', main='Figure 3: SARIMA Predictions of Chinese Exports') #plotting the data
+abline(v=2003,col='blue',lty=2)
+lines(exp(pred$mean)~t.new,type='l',col='red')
+lines(exp(pred$lower[,2])~t.new,col='blue') 
+lines(exp(pred$upper[,2])~t.new,col='blue')
+legend(1985,1450, c("95% CI", "Prediction"), lty = c(1,1),lwd = c(2.5,2.5), col = c('blue','red'))
+```
+```{r, echo=FALSE}
+predictions <- data.frame(Prediciton=exp(pred$mean), Lower=exp(pred$lower[,2]), Upper=exp(pred$upper[,2]))
+knitr::kable(predictions[1:10,])
+```
+
+
+
+\newpage 
+
+### SARIMAX
+```{r, include=FALSE}
+imports.log <- log(imports_train)
+imports.test.log <- log(imports_test)
+```
+
+
+```{r, include=FALSE}
+m2 <- arima(exports.log, order = c(1,1,3), seasonal = list(order = c(3,1,3), period = 12),xreg = imports.log, method = 'CSS') 
+
+rmse.sarimax <- rmse(exports_test, predict(m2, n.ahead = 72,newxreg = imports.test.log), log = T)
+```
+
+With the additional information on Chinese imports, we use the SARIMAX approach to use this new exongenous variable. Using the same potential values for p, q, P, Q, and s as the SARIMA approach before, we find that SARIMAX(1,1,3)x(3,1,3) with s = 12 performed the best with regards to root mean squared error. The residual plot  showed there is a little bit of heteroskedasticity but not enough to be concerned; however, a mean of zero is very reasonable assumption from the residual plot. A QQ-plot of the residuals show they exhibit normality for the most part with exception of a few outliers at the tails. A plot of the p-values for the Ljung-Box tests show there is not autocorrelation at any lags. All of the these diagnostic plots are shown in the SARIMAX Diagnostic Plots section in the appendix. This model produces an rmse of `r round(rmse.sarimax, 2)`. 
+
+```{r, echo=FALSE}
+pred <- predict(m2, n.ahead = 72, newxreg = imports.test.log)
+t.new <- seq(2003,2008,length=73)[1:72]
+plot(exports_train,xlim=c(1984,2008),ylim=c(0,1500), ylab='Exports (100 Million US Dollars)', main = 'Figure 4: SARIMAX Predictions of Chinese Exports') #plotting the data
+abline(v=2003,col='blue',lty=2)
+lines(exp(pred$pred)~t.new,type='l',col='red')
+lines(exp(pred$pred + pred$se*1.96)~t.new,col='blue') 
+lines(exp(pred$pred - pred$se*1.96)~t.new,col='blue')
+legend(1985,1450, c("95% CI", "Prediction"), lty = c(1,1),lwd = c(2.5,2.5), col = c('blue','red'))
+```
+
+```{r, echo=FALSE}
+predictions <- data.frame(Prediciton=exp(pred$pred), Lower=exp(pred$pred - pred$se*1.96), Upper=exp(pred$pred + pred$se*1.96))
+knitr::kable(predictions[1:10,])
+```
+
+
+\newpage
+
+### VAR(P)
+```{r, include=FALSE}
+VARselect(y = data.frame(exports_test, imports_test), season = 12)
+```
+
+  
+```{r, include=FALSE}
+var.m1 <- VAR(y = data.frame(exports_train, imports_train), p = 5, season = 12)
+pred.vals <- predict(var.m1, n.ahead = 72)$fcst$exports_train
+rmse.var <- rmse(exports_test,pred.vals[,1])
+```
+
+
+Now using Chinese exports and imports as endogenous variables, we use the Vector Autoregressive approach to forecast chinese exports. Using `R`'s `VARselect`, we find that an order of p=9 has the lowest AIC value. But after fitting VAR models with orders beween 1 and 10, we find that an order of 5 produced that best root mean squared error of `r round(rmse.var, 2)`. The residual plots shown in VAR Diagnostics Plots section in the appendix show that residuals have a mean of zero and are homoskedastic. However, the ACF and PACF plots show that there is autocorrelation at lag 12, but other than that there is no autocorrelation exhibited. 
+
+```{r, echo=FALSE}
+pred <- predict(var.m1, n.ahead = 72)$fcst$exports_train
+t.new <- seq(2003,2008,length=73)[1:72]
+plot(exports_train,xlim=c(1984,2008),ylim=c(0,1500), ylab='Exports (100 Million US Dollars)', main='Figure 5: VAR Predictions of Chinese Exports') #plotting the data
+abline(v=2003,col='blue',lty=2)
+lines(pred[,1]~t.new,type='l',col='red')
+lines(pred[,2]~t.new,col='blue') 
+lines(pred[,3]~t.new,col='blue')
+legend(1985,1450, c("95% CI", "Prediction"), lty = c(1,1),lwd = c(2.5,2.5), col = c('blue','red'))
+```
+
+```{r, echo=FALSE}
+predictions <- data.frame(Prediciton=pred[,1], Lower=pred[,2], Upper=pred[,3])
+knitr::kable(predictions[1:8,])
+```
+
+### Conclusion
+In forecasting Chinese exports, we find that the SARIMAX model performs the best with regards to rmse while also meeting all the residual assumptions. Even though the Holt-Winters method and SARIMA also peformed pretty well, Holt-winters did not meet the assumption of homoskedasticity or autocorrelation. Vector autorergression however, did not perform as one would like. Ultimately, this may mean that Chinese imports data were much more successful as an exogenous variable.  
+
+\newpage
+# Appendix
+```{r, include=FALSE}
+knitr::opts_chunk$set(fig.height=3.75, fig.width=5.25)
+```
+### HoltWinters Diagnostic Plots
+```{r, echo=FALSE}
+e <- residuals(ex.es)
+plot(e, ylab='Residuals', main='Figure 6: Residual Plot')
+acf(e, main = 'Figure 7: ACF Plot of Residuals')
+```
+
+### SARIMA Diagnostic Plots 
+```{r, echo=FALSE}
+e <- residuals(m12)
+plot(e, ylab='Residuals', main='Figure 8: Residual Plot')
+qqnorm(e, main='Figure 9: Normal QQ Plot')
+qqline(e, col = "red")
+```
+
+```{r, echo=FALSE, fig.height=6}
+tsdiag(m12)
+```
+
+### SARIMAX Diagnostic Plots
+```{r, echo=FALSE}
+e <- residuals(m2)
+plot(e, main='Figure 10: Residual Plot', ylab='Resdiduals')
+qqnorm(e, main='Figure 11: Normal QQ Plot')
+qqline(e, col = "red")
+```
+
+```{r, echo=FALSE, fig.height=6}
+tsdiag(m2)
+```
+
+### VAR Diagnostic Plots
+```{r, echo=FALSE}
+e <- residuals(var.m1)
+plot(e[,1], ylab='Residuals', main='Figure 12: Residual Plot')
+acf(e[,1], main='Figure 13: ACF Plot')
+pacf(e[,1], main='Figure 14: PACF plot')
+```

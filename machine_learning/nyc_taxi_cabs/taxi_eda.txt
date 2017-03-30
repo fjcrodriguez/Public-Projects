@@ -1,0 +1,49 @@
+Answer 1: Using only March data
+
+
+
+Answer 2:	Top 5 locations for pickups
+         Pickup_longitude  Pickup_latitude  VendorID
+1322529        -73.844292        40.721352        53
+1322350        -73.844299        40.721336        52
+1322027        -73.844315        40.721336        48
+1322031        -73.844315        40.721352        48
+1322862        -73.844276        40.721336        46
+
+
+
+Answer 3:	Top 5 locations for dropoffs
+         Dropoff_longitude  Dropoff_latitude  Counts  %ofTrips
+1177130         -73.909554         40.851273      12  0.000008
+761533          -73.945564         40.751709      10  0.000006
+881050          -73.939369         40.805126      10  0.000006
+881052          -73.939369         40.805134      10  0.000006
+880883          -73.939377         40.805134       8  0.000005
+
+
+
+Answer 4:	Top 3 Hours to be picked up
+    pickup_hour  Counts
+18           18  106259
+19           19  105113
+20           20   98274
+
+
+
+Answer 5:	Top 5 Pickup Locations by Lucrative Ratio
+     Pickup_longitude  Pickup_latitude  VendorID
+846        -73.890877        40.666843         2
+791        -73.902168        40.881779         2
+144        -73.973862        40.870033         2
+733        -73.909889        40.654533         2
+0          -74.237144        40.682236         1
+
+
+
+Answer 6:	Top 5 Dropoff Locations by Lucrative Ratio
+     Dropoff_longitude  Dropoff_latitude  VendorID
+628         -73.920311         40.624920         2
+847         -73.890877         40.666843         2
+791         -73.902168         40.881779         2
+733         -73.909889         40.654533         2
+814         -73.896240         40.855259         1

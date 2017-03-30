@@ -1,0 +1,177 @@
+---
+title: "Homework 2"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+```{r, include=FALSE}
+library(tseries)
+library(lawstat)
+library(forecast)
+```
+
+
+# 1.A
+```{r}
+plot(LakeHuron)
+adf.test(LakeHuron)
+```
+
+The p-value from the Dickey-Fuller test confirms that we need to difference the time-series in order to make the data stationary. 
+
+```{r}
+d1.lakehuron <- diff(LakeHuron)
+plot(d1.lakehuron)
+adf.test(d1.lakehuron)
+```
+
+According the Dickey-Fuller test, the Lake Huron time series is stationary given that null hypothesis is rejected at the 5% signifiance level.
+
+# 1.B
+```{r}
+(m1 <- arima(d1.lakehuron, order = c(1,0,0), method = 'ML'))
+```
+
+# 1.C
+```{r}
+(m2 <- arima(d1.lakehuron, order = c(2,0,0), method = 'ML'))
+```
+
+# 1.D
+```{r}
+D <- -2*(m1$loglik - m2$loglik)
+pval <- 1-pchisq(D,1)
+print(c("Test Statistic:",round(D,4),"P-value:",round(pval,4)))
+```
+
+# 1.E
+The likelihood ratio test conducted in section D suggests that the AR(2) model doesn't perform significantly better than the AR(1). The variance and aic value for the AR(2) model however, show that it fits comfortably better than the AR(1). Since AR(2) is not terribly more complex than the AR(1) model, AR(2) would be a better option. 
+
+# 1.F
+
+## Mean of Zero
+```{r}
+e <- m2$residuals
+r <- e/sqrt(m2$sigma2)
+t.test(r)
+```
+Given that the p-value is near 1, the null hypothesis that the mean is equal to zero is not rejected. We can safely assume the mean of the residuals is zero. 
+
+## Homoskedasticity 
+```{r}
+
+plot(r, main="Residuals vs t", ylab="")
+```
+From the residual plot above, heteroskedasticity doesn't seem to be much of a problem since there is no apparent increase in variation with shifts in $t$. 
+
+## Auto-correlatedness
+```{r}
+tsdiag(m2)
+```
+As shown in both the ACF plot and Ljung-Box statistic plot, the standardized residuals are not correlated at lags greater than 0. This makes us happy. 
+
+## Normality
+```{r}
+qqnorm(r, main="QQ-plot of Residuals")
+qqline(r, col = "red")
+```
+For the most part, the residuals fall on the qqline but a shapiro wilk's test for normality will more definitively tell us if the residuals come from a normal distribution. 
+```{r}
+shapiro.test(r)
+```
+Since the p-value is greater than any usual significance level, the null hypothesis that the data come from a normal distribution is not rejected, therefore we can safely assume that the data come from a normal distribution. 
+
+## Overall Residual Assessment 
+The residuals do not violate any of the assumptions necessary to be comfortable with the fit of our model. This also gives us confidence that our model will do well during forcasting. 
+
+# 2 
+
+## A
+```{r}
+beer <- read.csv('beer.csv')
+```
+
+```{r}
+plot(ts(beer))
+```
+
+The data seems like we should apply a log transform to account for the increasing variation. 
+
+```{r}
+beer <- ts(log(beer))
+plot(beer)
+ndiffs(beer)
+```
+Ndiffs suggest we should only difference once. So we will difference the data once. 
+```{r}
+beer.d1 <- diff(beer)
+beer.d1 <- diff(beer.d1, lag = 12)
+plot(beer.d1)
+```
+
+```{r}
+adf.test(beer.d1)
+```
+
+```{r}
+auto.arima(beer.d1)
+```
+
+Auto.arima suggests that we use an order of p=2, d=0 (since we already differenced the time series), and q=4. We will now fit different combinations of these orders.  
+
+```{r}
+
+m1 <- arima(beer.d1, order = c(1,0,2))
+m2 <- arima(beer.d1, order = c(2,0,2))
+m3 <- arima(beer.d1, order = c(3,0,2))
+m4 <- arima(beer.d1, order = c(1,0,3))
+m5 <- arima(beer.d1, order = c(2,0,3))
+m6 <- arima(beer.d1, order = c(3,0,3))
+m7 <- arima(beer.d1, order = c(1,0,4))
+m8 <- arima(beer.d1, order = c(2,0,4))
+m9 <- arima(beer.d1, order = c(3,0,4))
+
+
+model<-c("ARIMA(1,0,2)","ARIMA(2,0,2)", "ARIMA(3,0,2)", "ARIMA(1,0,3)", "ARIMA(2,0,3)", "ARIMA(3,0,3)", "ARIMA(1,0,4)","ARIMA(2,0,4)","ARIMA(3,0,4)")
+sigma2<-c(m1$sigma2, m2$sigma2, m3$sigma2, m4$sigma2, m5$sigma2, m6$sigma2, m7$sigma2, m8$sigma2, m9$sigma2)
+loglik<-c(m1$loglik, m2$loglik, m3$loglik, m4$loglik, m5$loglik, m6$loglik, m7$loglik, m8$loglik ,m9$loglik)
+aic<-c(m1$aic, m2$aic, m3$aic, m4$aic, m5$aic, m6$aic,m7$aic,m8$aic,m9$aic )
+data.frame(model, sigma2, loglik, aic)
+```
+From the dataframe shown above, the model with order (2,0,4) has the best sigma, log likelihood, aic.
+
+## B
+
+```{r}
+plot(m8$residuals)
+```
+
+The residuals look satisfying homoskedastic. We can conclude constant variance. 
+```{r}
+shapiro.test(m8$residuals)
+```
+The shapiro-wilks test does not reject the null that the residuals come from a normal distribution. Therefore we can conclude that the residual do in fact follow a normal distribution.  
+
+```{r}
+t.test(m8$residuals)
+```
+
+The null hypothesis that the mean is equal to zero is not rejected, which means we can conclude the residuals' mean is zero. 
+
+```{r}
+tsdiag(m8)
+```
+
+It seems like there is autocorrelation still present. More specifically, it is at lags that are multiples of 12, which means there is a seasonal trend present. I would suggest looking further into fitting a SARIMA model. 
+
+
+
+
+
+
+
+
+
+
+
+
