@@ -1,4 +1,4 @@
-# Time Series Analysis
+# Time Series Analysis Projects
 
 In this directory live some of the Time Series Projects I have worked on as part
 of the University of San Francisco Masters in Analytics Program. Each of the
