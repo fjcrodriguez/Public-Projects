@@ -1,12 +1,12 @@
-# Collection of Projects
-In this repository lives a collection of repositories that showcases some of data science related projects I have completed. Below you will find an itemized list with links to each project.
+# Time Series Analysis
 
-## Data Aquisiton
-[Pipe Lines](https://github.com/fjcrodriguez/projects/tree/master/data_pipelines)
+In this directory live some of the Time Series Projects I have worked on as part
+of the University of San Francisco Masters in Analytics Program. Each of the
+projects listed below contain a pdf of the analysis as well as the code that
+generated the pdf.
 
-## Machine Learning
-[ML Projects](https://github.com/fjcrodriguez/projects/tree/master/machine_learning)
-## Distributed Computing
-[Spark](https://github.com/fjcrodriguez/projects/tree/master/spark)
-## Time Series Analysis
-[TS Projects](https://github.com/fjcrodriguez/projects/tree/master/time_series)
+| Topic |
+| :------------- |
+| [Decomposition Model](https://github.com/fjcrodriguez/Public-Projects/tree/master/time_series/sales) |
+| [Arima-Sarima](https://github.com/fjcrodriguez/Public-Projects/tree/master/time_series/arima_sarima)  |
+| [Sarimax, Vector Autoregression](https://github.com/fjcrodriguez/Public-Projects/tree/master/time_series/chinese_exports)  |
