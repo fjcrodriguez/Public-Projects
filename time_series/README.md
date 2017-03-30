@@ -3,7 +3,7 @@
 In this directory live some of the Time Series Projects I have worked on as part
 of the University of San Francisco Masters in Analytics Program. Each of the
 projects listed below contain a pdf of the analysis as well as the code that
-generated the pdf.   
+generated the pdf.
 
 | Topic |
 | :------------- |
