@@ -1,12 +1,20 @@
-# Collection of Projects
-In this repository lives a collection of repositories that showcases some of data science related projects I have completed. Below you will find an itemized list with links to each project.
+# Data Pipelines
 
-## Data Aquisiton
-[Pipe Lines](https://github.com/fjcrodriguez/projects/tree/master/data_pipelines)
+Although there are many packages in python that allow you to read and write
+to many data formats, it is also important to know how to those packages
+manipulate data. For my own edification, I have implemented scripts the
+following scripts that parse data in a given format and converts the data
+to the desired format:
 
-## Machine Learning
-[ML Projects](https://github.com/fjcrodriguez/projects/tree/master/machine_learning)
-## Distributed Computing
-[Spark](https://github.com/fjcrodriguez/projects/tree/master/spark)
-## Time Series Analysis
-[TS Projects](https://github.com/fjcrodriguez/projects/tree/master/time_series)
+| Beginnging Format | End Format |
+| :------------- | :------------- |
+| csv     | html       |
+| csv     | json       |
+| csv     | xml       |
+| xml     | csv       |
+| json    | csv          |
+
+These scripts are used only through the terminal and have the option of printing
+the data to the console, which can then be directed to a .csv, .json, .html,
+or .xml file. The other option after reading a data file is writing directly
+to a file with a given filename.  
